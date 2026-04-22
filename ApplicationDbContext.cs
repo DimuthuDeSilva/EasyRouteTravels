@@ -1,0 +1,18 @@
+﻿using Microsoft.EntityFrameworkCore;
+using LocalTourPlanner.Models;
+
+namespace LocalTourPlanner.Data
+{
+    public class ApplicationDbContext : DbContext
+    {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
+        {
+        }
+
+        // These represent your MySQL tables
+        public DbSet<Location> Locations { get; set; }
+        public DbSet<Vehicle> Vehicles { get; set; }
+        public DbSet<Admin> Admins { get; set; }
+    }
+}

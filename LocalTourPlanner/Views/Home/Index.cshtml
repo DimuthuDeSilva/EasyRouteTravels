@@ -1,0 +1,116 @@
+﻿@model LocationViewModel
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<!-- Hero Section -->
+<div class="py-5 text-center text-white" style="background: linear-gradient(135deg, #004aad 0%, #0066cc 100%); margin-top: -24px;">
+    <div class="container">
+        <h1 class="fw-bold display-4">Plan Your Perfect Journey</h1>
+        <p class="lead">Explore the best locations and plan your perfect tour</p>
+    </div>
+</div>
+
+<div class="container my-4">
+    <!-- Category Filters -->
+    <div class="d-flex flex-wrap gap-2 py-3">
+        <button class="btn btn-primary rounded-pill px-4 filter-btn" data-filter="all">All</button>
+        <button class="btn btn-outline-secondary rounded-pill px-4 filter-btn" data-filter="Monument">Monument</button>
+        <button class="btn btn-outline-secondary rounded-pill px-4 filter-btn" data-filter="Sightseeing">Sightseeing</button>
+        <button class="btn btn-outline-secondary rounded-pill px-4 filter-btn" data-filter="Nature">Nature</button>
+        <button class="btn btn-outline-secondary rounded-pill px-4 filter-btn" data-filter="Restaurant">Restaurant</button>
+    </div>
+
+    <!-- Location Cards -->
+    <div class="row mt-4">
+        @if (Model != null && Model.Locations.Any())
+        {
+            @foreach (var item in Model.Locations)
+            {
+                <div class="col-md-6 mb-4 location-card-item" data-category="@item.Category">
+                    <div class="card shadow-sm border-0 rounded-4 h-100" style="background-color: #f8f9fa;">
+                        <div class="text-center py-5" style="background-color: #e9ecef; border-radius: 12px 12px 0 0;">
+                            <i class="bi bi-geo-alt text-secondary" style="font-size: 3rem;"></i>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="fw-bold">@item.LocationName</h5>
+                            <p class="text-muted">@item.ShortDescription</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-white text-dark border">
+                                    <i class="bi bi-geo-alt me-1"></i>@item.Distance km
+                                </span>
+                                <a asp-action="Details" asp-route-id="@item.LID" class="btn btn-link text-primary text-decoration-none p-0">
+                                    View Details <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-map fs-1 text-muted"></i>
+                <p class="text-muted mt-2">No locations found. Please check back later!</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const searchInput = document.getElementById('mainSearch');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const cards = document.querySelectorAll('.location-card-item');
+
+            let currentCategory = 'all';
+
+            // Master Function to apply both filters
+            function applyFilters() {
+                const query = searchInput.value.toLowerCase();
+
+                cards.forEach(card => {
+                    const title = card.querySelector('h5').textContent.toLowerCase();
+                    const description = card.querySelector('p').textContent.toLowerCase();
+                    const cardCategory = card.getAttribute('data-category');
+
+                    // Check 1: Does it match the Search?
+                    const matchesSearch = title.includes(query) || description.includes(query);
+
+                    // Check 2: Does it match the Category?
+                    const matchesCategory = (currentCategory === 'all' || cardCategory === currentCategory);
+
+                    // Only show if it matches BOTH
+                    if (matchesSearch && matchesCategory) {
+                        card.style.display = "";
+                    } else {
+                        card.style.display = "none";
+                    }
+                });
+            }
+
+            // Listen for Search typing
+            searchInput.addEventListener('keyup', applyFilters);
+
+            // Listen for Category clicks
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    currentCategory = this.getAttribute('data-filter');
+
+                    // Update button UI (Blue for active, Gray for others)
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('btn-primary');
+                        btn.classList.add('btn-outline-secondary');
+                    });
+                    this.classList.remove('btn-outline-secondary');
+                    this.classList.add('btn-primary');
+
+                    applyFilters();
+                });
+            });
+        });
+    </script>
+}
