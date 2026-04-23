@@ -1,0 +1,65 @@
+﻿@model LocalTourPlanner.Domain.Vehicle
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            @* Error Alert for Duplicates *@
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-dark text-white p-4 rounded-top-4">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Vehicle Details</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post">
+                        @* ID is hidden but required for the database update *@
+                        <input type="hidden" asp-for="VID" />
+
+                        <div class="mb-3">
+                            <label asp-for="VehicleName" class="form-label fw-bold">Vehicle Name</label>
+                            <input asp-for="VehicleName" class="form-control" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="VehicleType" class="form-label fw-bold">Vehicle Type</label>
+                            @* Hybrid Input for Edit *@
+                            <input asp-for="VehicleType" class="form-control" list="vehicleTypeOptions" required />
+                            <datalist id="vehicleTypeOptions">
+                                <option value="Car" />
+                                <option value="Van" />
+                                <option value="Bus" />
+                                <option value="SUV" />
+                                <option value="Luxury Sedan" />
+                            </datalist>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label asp-for="SeatingCapacity" class="form-label fw-bold">Capacity</label>
+                                <input asp-for="SeatingCapacity" type="number" class="form-control" required />
+                            </div>
+                            <div class="col">
+                                <label asp-for="Rate" class="form-label fw-bold">Rate (per km)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Rs.</span>
+                                    <input asp-for="Rate" type="number" step="0.01" class="form-control" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-dark rounded-pill py-2 fw-bold shadow-sm">Update Changes</button>
+                            <a asp-action="Index" class="btn btn-light rounded-pill">Back to List</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

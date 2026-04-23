@@ -1,0 +1,60 @@
+﻿@model LocalTourPlanner.Models.Location
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li class="breadcrumb-item active">@Model.LocationName</li>
+                </ol>
+            </nav>
+
+            <div class="rounded-4 overflow-hidden mb-4" style="height: 400px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center;">
+                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                {
+                    <img src="@Model.ImagePath" class="img-fluid w-100 h-100" style="object-fit: cover;" />
+                }
+                else
+                {
+                    <i class="bi bi-image text-secondary" style="font-size: 5rem;"></i>
+                }
+            </div>
+
+            <h1 class="fw-bold">@Model.LocationName</h1>
+            <span class="badge bg-primary mb-3">@Model.Category</span>
+
+            <p class="lead">@Model.ShortDescription</p>
+            <hr />
+            <h5 class="fw-bold">About this place</h5>
+            <p>@Model.LocationDescription</p>
+
+            <div class="d-flex gap-4 mt-4 text-muted">
+                <div><i class="bi bi-clock me-2"></i> @Model.OpeningHours</div>
+                <div><i class="bi bi-geo-alt me-2"></i> @Model.Distance km from center</div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 20px;">
+                <div class="card-body p-4 text-center">
+                    <h5 class="fw-bold mb-3">Interested in visiting?</h5>
+                    <p class="text-muted small mb-4">Add this location to your tour plan to calculate the total travel cost.</p>
+
+                    @* --- UPDATED FORM SECTION --- *@
+                    <form asp-controller="Tour" asp-action="AddToPlan" method="post">
+                        @* Ensure the 'name' attribute matches the 'locationId' parameter in your TourController *@
+                        <input type="hidden" name="locationId" value="@Model.LID" />
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm">
+                            <i class="bi bi-plus-circle me-2"></i> Add to Plan
+                        </button>
+                    </form>
+                    @* ---------------------------- *@
+
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-link text-muted mt-2">Back to Explore</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

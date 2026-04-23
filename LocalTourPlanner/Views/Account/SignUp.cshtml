@@ -1,0 +1,46 @@
+﻿@{
+    ViewData["Title"] = "Create Account";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-primary">Join EasyRoute</h2>
+                    <p class="text-muted">Start planning your Panadura tour today</p>
+                </div>
+
+                <form asp-action="SignUp" method="post">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Full Name</label>
+                        <input type="text" name="CustomerName" class="form-control rounded-pill border-light bg-light px-3" placeholder="Dimuthu De Silva" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Email Address</label>
+                        <input type="email" name="Email" class="form-control rounded-pill border-light bg-light px-3" placeholder="name@example.com" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Username</label>
+                        <input type="text" name="UserName" class="form-control rounded-pill border-light bg-light px-3" placeholder="dimma99" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Password</label>
+                        <input type="password" name="UserPassword" class="form-control rounded-pill border-light bg-light px-3" placeholder="••••••••" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" style="background-color: #004aad;">
+                        Create Account
+                    </button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="small text-muted">Already have an account? <a asp-action="Login" class="text-primary text-decoration-none fw-bold">Login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

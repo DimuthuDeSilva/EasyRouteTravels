@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LocalTourPlanner.Models
+namespace LocalTourPlanner.Domain
 {
     public class Vehicle
     {
+        [Key]
         public int? VID { get; set; }
         public string? VehicleName { get; set; }
         public string? VehicleType { get; set; }
