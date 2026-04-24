@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using LocalTourPlanner.Domain;
 
 namespace LocalTourPlanner.Models
 {
@@ -14,5 +15,6 @@ namespace LocalTourPlanner.Models
         public string? OpeningHours { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
+        public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
     }
 }

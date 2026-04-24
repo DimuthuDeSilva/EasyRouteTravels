@@ -15,5 +15,6 @@ namespace LocalTourPlanner.Data
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<Customer> Customer { get; set; }
         public DbSet<TourPlan> TourPlans { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
     }
 }

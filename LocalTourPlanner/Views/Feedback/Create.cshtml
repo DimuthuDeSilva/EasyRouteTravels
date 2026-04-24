@@ -1,0 +1,114 @@
+﻿@model LocalTourPlanner.Models.FeedbackViewModel
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-primary text-white p-4 rounded-top-4 text-center">
+                    <h3 class="mb-0 fw-bold">Share Your Experience</h3>
+                    <p class="mb-0 text-white-50">Reviewing: @Model.LocationName</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        @* Hidden field to link the review to the correct location *@
+                        <input type="hidden" asp-for="LocationID" />
+                        <input type="hidden" asp-for="LocationName" />
+
+                        <div class="mb-4">
+                            <label asp-for="UserName" class="form-label fw-bold">Your Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person"></i></span>
+                                <input asp-for="UserName" class="form-control border-start-0 shadow-none bg-light" placeholder="How should we address you?" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Rating</label>
+                            <div class="d-flex gap-3 align-items-center">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <div class="form-check form-check-inline m-0">
+                                        <input class="form-check-input d-none star-radio" type="radio" asp-for="Rating" value="@i" id="star@i" required>
+                                        <label class="form-check-label star-label" for="star@i" title="@i Stars">
+                                            <i class="bi bi-star-fill fs-3 text-muted" id="icon@i"></i>
+                                        </label>
+                                    </div>
+                                }
+                                <span id="ratingText" class="ms-2 text-muted fw-bold small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Comment" class="form-label fw-bold">Your Story</label>
+                            <textarea asp-for="Comment" class="form-control bg-light" rows="4" placeholder="Tell other travelers about your visit to @Model.LocationName..." required></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ImageFile" class="form-label fw-bold">Upload a Photo (Optional)</label>
+                            <input asp-for="ImageFile" type="file" class="form-control shadow-none" accept="image/*" />
+                            <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i> Max file size: 5MB. Formats: JPG, PNG.</div>
+                        </div>
+
+                        <div class="d-grid gap-2 pt-2">
+                            <button type="submit" class="btn btn-primary rounded-pill py-3 fw-bold shadow-sm">
+                                Submit Review <i class="bi bi-send ms-2"></i>
+                            </button>
+                            <a asp-controller="Locations" asp-action="Details" asp-route-id="@Model.LocationID" class="btn btn-light rounded-pill py-2">
+                                Maybe Later
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Interactive Star Rating Logic
+        const starLabels = document.querySelectorAll('.star-label');
+        const ratingText = document.getElementById('ratingText');
+        const textLabels = ["", "Poor", "Fair", "Good", "Great", "Excellent!"];
+
+        starLabels.forEach((label, index) => {
+            label.addEventListener('click', () => {
+                const rating = index + 1;
+                ratingText.innerText = textLabels[rating];
+
+                // Color the stars
+                starLabels.forEach((l, i) => {
+                    const icon = l.querySelector('i');
+                    if (i <= index) {
+                        icon.classList.remove('text-muted');
+                        icon.classList.add('text-warning');
+                    } else {
+                        icon.classList.add('text-muted');
+                        icon.classList.remove('text-warning');
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .star-label {
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+        .star-label:hover {
+            transform: scale(1.2);
+        }
+
+    .card {
+        background: #ffffff;
+    }
+
+    textarea:focus, input:focus {
+        border-color: #0d6efd !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1) !important;
+    }
+</style>

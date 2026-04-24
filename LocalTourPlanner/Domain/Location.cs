@@ -15,5 +15,6 @@ namespace LocalTourPlanner.Domain
         public string? OpeningHours { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
+        public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
     }
 }

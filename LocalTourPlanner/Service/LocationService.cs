@@ -20,7 +20,9 @@ namespace LocalTourPlanner.Service
         #region Methods
         public async Task<List<Location>> GetAllLocationAsync()
         {
-            return await _context.Locations.ToListAsync();
+            return await _context.Locations
+                .Include(l => l.Feedbacks) // This is the "magic" line
+                .ToListAsync();
         }
         #endregion
     }

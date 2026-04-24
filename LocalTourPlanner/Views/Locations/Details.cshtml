@@ -1,7 +1,10 @@
-﻿@model LocalTourPlanner.Models.Location
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@model LocalTourPlanner.Models.Location
 
 <div class="container my-5">
     <div class="row">
+        @* Left Column: Details *@
         <div class="col-md-8">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
@@ -33,24 +36,87 @@
                 <div><i class="bi bi-clock me-2"></i> @Model.OpeningHours</div>
                 <div><i class="bi bi-geo-alt me-2"></i> @Model.Distance km from center</div>
             </div>
+
+            @* --- UPDATED FEEDBACK DISPLAY SECTION --- *@
+            <hr class="my-5" />
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold">Traveler Stories</h3>
+
+                @{
+                    // 1. Check if vehicle is selected
+                    var vehicleRate = HttpContextAccessor.HttpContext.Session.GetString("VehicleRate");
+
+                    // 2. Check if THIS specific location is in the user's plan (from Controller)
+                    bool isPlanned = ViewBag.IsLocationInPlan ?? false;
+                }
+
+                @* Only show button if BOTH conditions are met *@
+                @if (!string.IsNullOrEmpty(vehicleRate) && isPlanned)
+                {
+                    <a asp-controller="Feedback" asp-action="Create"
+                       asp-route-locationId="@Model.LID"
+                       asp-route-locationName="@Model.LocationName"
+                       class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-pencil-square me-2"></i> Write a Review
+                    </a>
+                }
+                else if (!string.IsNullOrEmpty(vehicleRate) && !isPlanned)
+                {
+                    @* Optional: Show a hint that they need to add it to plan first *@
+                    <span class="badge rounded-pill bg-light text-dark border py-2 px-3">
+                        <i class="bi bi-lock-fill me-1 text-warning"></i> Add to plan to review
+                    </span>
+                }
+            </div>
+
+            @if (Model.Feedbacks != null && Model.Feedbacks.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var review in Model.Feedbacks.OrderByDescending(f => f.CreatedDate))
+                    {
+                        <div class="col-12 mb-3">
+                            <div class="card border-0 shadow-sm rounded-4 p-3">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="fw-bold mb-1">@review.UserName</h6>
+                                    <div class="text-warning small">
+                                        @for (int i = 0; i < review.Rating; i++)
+                                        {
+                                            <i class="bi bi-star-fill"></i>
+                                        }
+                                    </div>
+                                </div>
+                                <small class="text-muted mb-2 d-block">@review.CreatedDate.ToString("MMM dd, yyyy")</small>
+                                <p class="mb-0 text-secondary italic">"@review.Comment"</p>
+                                @if (!string.IsNullOrEmpty(review.ImagePath))
+                                {
+                                    <img src="@review.ImagePath" class="rounded-3 mt-3 shadow-sm" style="max-width: 150px; height: auto;" />
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="bg-light p-5 rounded-4 text-center border border-dashed">
+                    <p class="text-muted mb-0">No stories shared yet. Be the first!</p>
+                </div>
+            }
         </div>
 
+        @* Right Column: Action Card *@
         <div class="col-md-4">
             <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 20px;">
                 <div class="card-body p-4 text-center">
                     <h5 class="fw-bold mb-3">Interested in visiting?</h5>
                     <p class="text-muted small mb-4">Add this location to your tour plan to calculate the total travel cost.</p>
 
-                    @* --- UPDATED FORM SECTION --- *@
                     <form asp-controller="Tour" asp-action="AddToPlan" method="post">
-                        @* Ensure the 'name' attribute matches the 'locationId' parameter in your TourController *@
                         <input type="hidden" name="locationId" value="@Model.LID" />
-
                         <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm">
                             <i class="bi bi-plus-circle me-2"></i> Add to Plan
                         </button>
                     </form>
-                    @* ---------------------------- *@
 
                     <a asp-controller="Home" asp-action="Index" class="btn btn-link text-muted mt-2">Back to Explore</a>
                 </div>
@@ -58,3 +124,14 @@
         </div>
     </div>
 </div>
+
+<style>
+    .border-dashed {
+        border-style: dashed !important;
+        border-width: 2px;
+    }
+
+    .italic {
+        font-style: italic;
+    }
+</style>

@@ -39,7 +39,7 @@ namespace LocalTourPlanner.Controllers
         [HttpGet]
         public IActionResult Login() => View();
 
-        [HttpPost]
+  
         [HttpPost]
         public async Task<IActionResult> Login(string UserName, string UserPassword)
         {
