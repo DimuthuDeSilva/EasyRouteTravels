@@ -1,18 +1,17 @@
-﻿using LocalTourPlanner.Data;
-using LocalTourPlanner.Domain;
-using Microsoft.AspNetCore.Http;
+﻿using LocalTourPlanner.Domain;
+using LocalTourPlanner.Models;
+using LocalTourPlanner.Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace LocalTourPlanner.Controllers
 {
     public class TourController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ITourPlanService _tourPlanService;
 
-        public TourController(ApplicationDbContext context)
+        public TourController(ITourPlanService tourPlanService)
         {
-            _context = context;
+            _tourPlanService = tourPlanService;
         }
 
         [HttpPost]
@@ -28,21 +27,19 @@ namespace LocalTourPlanner.Controllers
 
             // 2. CHECK FOR DUPLICATES: 
             // Check if this specific user has already added this specific location
-            var alreadyAdded = await _context.TourPlans
-                .AnyAsync(p => p.CustomerID == userId && p.LocationID == locationId);
+            var alreadyAdded = await _tourPlanService.IsLocationInPlanAsync(userId.Value, locationId);
 
             if (!alreadyAdded)
             {
                 // 3. If NOT added, create the new record
-                var planItem = new LocalTourPlanner.Domain.TourPlan
+                var planItem = new TourPlan
                 {
                     CustomerID = userId.Value,
                     LocationID = locationId,
                     DateAdded = DateTime.Now
                 };
 
-                _context.TourPlans.Add(planItem);
-                await _context.SaveChangesAsync();
+                await _tourPlanService.AddToPlanAsync(userId.Value, locationId);
             }
             // Note: If it WAS already added, we skip the saving part and just 
             // redirect them to the list so they can see it's already there.
@@ -53,20 +50,41 @@ namespace LocalTourPlanner.Controllers
         public async Task<IActionResult> MyPlan()
         {
             var userId = HttpContext.Session.GetInt32("UserID");
+
             if (userId == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            // Fetch all plans for this user and include the related Location data
-            var userPlan = await _context.TourPlans
-                .Include(p => p.Location)
-                .Where(p => p.CustomerID == userId)
-                .OrderBy(p => p.DateAdded)
-                .ToListAsync();
+            var userPlan = await _tourPlanService.GetUserPlansAsync(userId.Value);
 
-            return View(userPlan);
+            var model = userPlan.Select(x => new TourPlanModel
+            {
+                PlanID = x.PlanID,
+                LID = x.LocationID,
+                LocationName = x.Location?.LocationName,
+                LocationDescription = x.Location?.LocationDescription,
+                Category = x.Location?.Category,
+                Distance = x.Location?.Distance,
+                ShortDescription = x.Location?.ShortDescription,
+                ImagePath = x.Location?.ImagePath,
+                OpeningHours = x.Location?.OpeningHours,
+                Latitude = x.Location?.Latitude,
+                Longitude = x.Location?.Longitude,
+                Feedbacks = x.Location?.Feedbacks.Select(f => new FeedbackModel
+                {
+                    FeedbackID = f.FeedbackID,
+                    LocationID = f.LocationID,
+                    Rating = f.Rating,
+                    Comment = f.Comment,
+                    ImagePath = f.ImagePath,
+                    CreatedDate = f.CreatedDate
+                }).ToList() ?? new List<FeedbackModel>()
+            }).ToList();
+
+            return View(model);
         }
+
         [HttpPost]
         public async Task<IActionResult> RemoveFromPlan(int planId)
         {
@@ -77,20 +95,10 @@ namespace LocalTourPlanner.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // 1. Find the specific plan item
-            var planItem = await _context.TourPlans
-                .FirstOrDefaultAsync(p => p.PlanID == planId && p.CustomerID == userId);
+            await _tourPlanService.RemoveFromPlanAsync(userId.Value, planId);
 
-            if (planItem != null)
-            {
-                // 2. Remove it
-                _context.TourPlans.Remove(planItem);
-                await _context.SaveChangesAsync();
+            TempData["Message"] = "Location removed from your plan.";
 
-                TempData["Message"] = "Location removed from your plan.";
-            }
-
-            // 3. Go back to the list
             return RedirectToAction("MyPlan");
         }
     }

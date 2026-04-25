@@ -1,6 +1,6 @@
 using LocalTourPlanner.Data;
-using LocalTourPlanner.Interfaces;
 using LocalTourPlanner.Service;
+using LocalTourPlanner.Service.Interfaces;
 using LocalTourPlanner.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +22,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<ITourPlanService, TourPlanService>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

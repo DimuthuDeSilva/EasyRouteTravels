@@ -1,8 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace LocalTourPlanner.Models
 {
-    public class Customer
+    public class CustomerModel
     {
         public int? CID { get; set; }
         public string? CustomerName { get; set; }

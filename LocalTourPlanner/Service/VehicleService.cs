@@ -1,5 +1,6 @@
 ﻿using LocalTourPlanner.Data;
 using LocalTourPlanner.Domain;
+using LocalTourPlanner.Service.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace LocalTourPlanner.Service

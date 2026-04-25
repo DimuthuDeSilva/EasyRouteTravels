@@ -1,6 +1,6 @@
 ﻿using LocalTourPlanner.Domain;
 
-namespace LocalTourPlanner.Service
+namespace LocalTourPlanner.Service.Interfaces
 {
     public interface ILocationService
     {

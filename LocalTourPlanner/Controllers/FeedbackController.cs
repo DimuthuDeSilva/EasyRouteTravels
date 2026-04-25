@@ -1,20 +1,25 @@
-﻿using LocalTourPlanner.Data;
-using LocalTourPlanner.Domain;
+﻿using LocalTourPlanner.Domain;
 using LocalTourPlanner.Models;
-using Microsoft.AspNetCore.Http;
+using LocalTourPlanner.Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LocalTourPlanner.Controllers
 {
     public class FeedbackController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        #region Fields
+        private readonly IFeedbackService _feedbackService;
+        #endregion
 
-        public FeedbackController(ApplicationDbContext context)
+        #region Ctor
+        public FeedbackController(IFeedbackService feedbackService)
         {
-            _context = context;
+            _feedbackService = feedbackService;
         }
 
+        #endregion
+
+        #region Methods
         [HttpGet]
         public IActionResult Create(int locationId, string locationName)
         {
@@ -26,7 +31,7 @@ namespace LocalTourPlanner.Controllers
                 return RedirectToAction("MyPlan", "Tour");
             }
 
-            var model = new FeedbackViewModel
+            var model = new FeedbackModel
             {
                 LocationID = locationId,
                 LocationName = locationName
@@ -35,7 +40,7 @@ namespace LocalTourPlanner.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(FeedbackViewModel vm)
+        public async Task<IActionResult> Create(FeedbackModel vm)
         {
             if (ModelState.IsValid)
             {
@@ -67,13 +72,13 @@ namespace LocalTourPlanner.Controllers
                     CreatedDate = DateTime.Now
                 };
 
-                _context.Feedbacks.Add(feedback);
-                await _context.SaveChangesAsync();
+                await _feedbackService.AddFeedbackAsync(feedback);
 
                 TempData["Success"] = "Thank you! Your review has been posted.";
                 return RedirectToAction("Details", "Locations", new { id = vm.LocationID });
             }
             return View(vm);
         }
+        #endregion
     }
 }

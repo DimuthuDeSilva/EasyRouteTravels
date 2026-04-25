@@ -4,9 +4,9 @@
     {
         public LocationViewModel() 
         { 
-        Locations = new List<Location>();
+        Locations = new List<LocationModel>();
         }
-            public List<Location> Locations { get; set; }
+            public List<LocationModel> Locations { get; set; }
 
     }
 }

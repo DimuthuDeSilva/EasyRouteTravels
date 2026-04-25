@@ -1,5 +1,6 @@
 ﻿using LocalTourPlanner.Data;
 using LocalTourPlanner.Domain;
+using LocalTourPlanner.Service.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace LocalTourPlanner.Service
@@ -21,9 +22,10 @@ namespace LocalTourPlanner.Service
         public async Task<List<Location>> GetAllLocationAsync()
         {
             return await _context.Locations
-                .Include(l => l.Feedbacks) // This is the "magic" line
+                .Include(l => l.Feedbacks) 
                 .ToListAsync();
         }
+
         #endregion
     }
 }

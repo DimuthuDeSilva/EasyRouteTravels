@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LocalTourPlanner.Domain.TourPlan>
+﻿@model IEnumerable<TourPlanModel>
 
 @{
     ViewData["Title"] = "My Tour Plan";
@@ -49,9 +49,9 @@
                         <div class="card-body p-0">
                             <div class="d-flex align-items-center">
                                 <div style="width: 120px; height: 100px; background-color: #f8f9fa;">
-                                    @if (!string.IsNullOrEmpty(item.Location?.ImagePath))
+                                    @if (!string.IsNullOrEmpty(item.ImagePath))
                                     {
-                                        <img src="@item.Location.ImagePath" class="w-100 h-100" style="object-fit: cover;" />
+                                        <img src="@item.ImagePath" class="w-100 h-100" style="object-fit: cover;" />
                                     }
                                     else
                                     {
@@ -61,10 +61,10 @@
                                     }
                                 </div>
                                 <div class="p-3 flex-grow-1">
-                                    <h5 class="fw-bold mb-1">@item.Location?.LocationName</h5>
+                                    <h5 class="fw-bold mb-1">@item.LocationName</h5>
                                     <div class="d-flex gap-3 text-muted small">
-                                        <span><i class="bi bi-tag me-1"></i> @item.Location?.Category</span>
-                                        <span><i class="bi bi-geo-alt me-1"></i> @item.Location?.Distance km</span>
+                                        <span><i class="bi bi-tag me-1"></i> @item.Category</span>
+                                        <span><i class="bi bi-geo-alt me-1"></i> @item.Distance km</span>
                                     </div>
                                 </div>
                                 <div class="p-3">
@@ -99,7 +99,7 @@
 
                     <div class="d-flex justify-content-between mb-3">
                         <span>Estimated Distance</span>
-                        <span class="fw-bold">@Model.Sum(x => x.Location?.Distance ?? 0) km</span>
+                        <span class="fw-bold">@Model.Sum(x => x.Distance ?? 0) km</span>
                     </div>
 
                     <hr />

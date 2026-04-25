@@ -1,27 +1,31 @@
-using System.Linq;
-using LocalTourPlanner.Data;
 using LocalTourPlanner.Models;
-using LocalTourPlanner.Service;
+using LocalTourPlanner.Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LocalTourPlanner.Controllers
 {
     public class HomeController : Controller
     {
+        #region Fields
         private readonly ILocationService _locationService;
 
+        #endregion
+
+        #region Ctor
         public HomeController(ILocationService locationService)
         {
             _locationService = locationService;
         }
+        #endregion
 
+        #region Methods
         public async Task<IActionResult> Index()
         {
             var data = await _locationService.GetAllLocationAsync();
 
             var model = new LocationViewModel
             {
-                Locations = data.Select(x => new Location
+                Locations = data.Select(x => new LocationModel
                 {
                     LID = x.LID,
                     LocationName = x.LocationName,
@@ -34,5 +38,7 @@ namespace LocalTourPlanner.Controllers
 
             return View(model);
         }
+
+        #endregion
     }
 }

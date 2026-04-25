@@ -1,29 +1,35 @@
 ﻿using System.Linq;
 using LocalTourPlanner.Data;
 using LocalTourPlanner.Domain;
-using LocalTourPlanner.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using LocalTourPlanner.Service.Interfaces;
+using LocalTourPlanner.Models;
 
 namespace LocalTourPlanner.Controllers
 {
     public class VehicleController : Controller
     {
+        #region Fields
         private readonly IVehicleService _vehicleService;
 
+        #endregion
+
+        #region Ctor
         public VehicleController(IVehicleService vehicleService)
         {
             _vehicleService = vehicleService;
         }
+        #endregion
 
-        // --- CUSTOMER & ADMIN VIEW ---
+        #region Methods
         public async Task<IActionResult> Index()
         {
             var data = await _vehicleService.GetAllVehicleAsync();
 
-            var model = new LocalTourPlanner.Models.VehicleViewModel
+            var model = new VehicleViewModel
             {
-                Vehicles = data.Select(x => new LocalTourPlanner.Models.Vehicle
+                Vehicles = data.Select(x => new VehicleModel
                 {
                     VID = x.VID,
                     VehicleName = x.VehicleName ?? "",
@@ -36,7 +42,6 @@ namespace LocalTourPlanner.Controllers
             return View("Vehicle", model);
         }
 
-        // --- CREATE (ADMIN ONLY) ---
         public IActionResult Create()
         {
             if (HttpContext.Session.GetString("UserRole") != "Admin")
@@ -44,61 +49,93 @@ namespace LocalTourPlanner.Controllers
 
             return View();
         }
+
         [HttpPost]
-        public async Task<IActionResult> Create(Vehicle vehicle)
+        public async Task<IActionResult> Create(VehicleModel model)
         {
             if (HttpContext.Session.GetString("UserRole") != "Admin")
                 return RedirectToAction("Index", "Home");
 
-            // Check for duplicate name
             var existingVehicles = await _vehicleService.GetAllVehicleAsync();
-            if (existingVehicles.Any(v => v.VehicleName.Equals(vehicle.VehicleName, StringComparison.OrdinalIgnoreCase)))
+
+            if (existingVehicles.Any(v =>
+                v.VehicleName.Equals(model.VehicleName, StringComparison.OrdinalIgnoreCase)))
             {
                 TempData["Error"] = "A vehicle with this name already exists!";
-                return View(vehicle);
+                return View(model);
             }
 
             if (ModelState.IsValid)
             {
+                var vehicle = new Vehicle
+                {
+                    VehicleName = model.VehicleName,
+                    VehicleType = model.VehicleType,
+                    Rate = model.Rate,
+                    SeatingCapacity = model.SeatingCapacity
+                };
+
                 await _vehicleService.InsertVehicleAsync(vehicle);
+
                 TempData["Success"] = "Vehicle added successfully!";
                 return RedirectToAction("Index");
             }
-            return View(vehicle);
+
+            return View(model);
         }
 
-        // --- EDIT (ADMIN ONLY) ---
         public async Task<IActionResult> Edit(int id)
         {
             if (HttpContext.Session.GetString("UserRole") != "Admin")
                 return RedirectToAction("Index", "Home");
 
-            var vehicle = await _vehicleService.GetByIdAsync(id);
-            if (vehicle == null) return NotFound();
+            var data = await _vehicleService.GetByIdAsync(id);
+            if (data == null) return NotFound();
 
-            return View(vehicle);
+            var model = new VehicleModel
+            {
+                VID = data.VID,
+                VehicleName = data.VehicleName,
+                VehicleType = data.VehicleType,
+                Rate = data.Rate,
+                SeatingCapacity = data.SeatingCapacity
+            };
+
+            return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(Vehicle vehicle)
+        public async Task<IActionResult> Edit(VehicleModel model)
         {
             if (HttpContext.Session.GetString("UserRole") != "Admin")
                 return RedirectToAction("Index", "Home");
 
-            // Check for duplicate name (excluding itself)
+            // Check duplicate name (excluding itself)
             var allVehicles = await _vehicleService.GetAllVehicleAsync();
-            if (allVehicles.Any(v => v.VehicleName.Equals(vehicle.VehicleName, StringComparison.OrdinalIgnoreCase) && v.VID != vehicle.VID))
+
+            if (allVehicles.Any(v =>
+                v.VehicleName.Equals(model.VehicleName, StringComparison.OrdinalIgnoreCase)
+                && v.VID != model.VID))
             {
                 TempData["Error"] = "Another vehicle is already using this name!";
-                return View(vehicle);
+                return View(model);
             }
 
+            var vehicle = new Vehicle
+            {
+                VID = model.VID ?? 0,
+                VehicleName = model.VehicleName,
+                VehicleType = model.VehicleType,
+                Rate = model.Rate,
+                SeatingCapacity = model.SeatingCapacity
+            };
+
             await _vehicleService.UpdateVehicleAsync(vehicle);
+
             TempData["Success"] = "Vehicle updated successfully!";
             return RedirectToAction("Index");
         }
 
-        // --- DELETE (ADMIN ONLY) ---
         public async Task<IActionResult> Delete(int id)
         {
             if (HttpContext.Session.GetString("UserRole") != "Admin")
@@ -108,7 +145,6 @@ namespace LocalTourPlanner.Controllers
             return RedirectToAction("Index");
         }
 
-        // --- SELECTION (CUSTOMER ONLY) ---
         [HttpPost]
         public IActionResult SelectVehicle(int vehicleId, string vehicleName, decimal rate)
         {
@@ -120,5 +156,6 @@ namespace LocalTourPlanner.Controllers
 
             return RedirectToAction("MyPlan", "Tour");
         }
+        #endregion
     }
 }

@@ -1,24 +1,29 @@
-﻿using LocalTourPlanner.Interfaces;
-using LocalTourPlanner.Domain; // <--- Change this from .Models to .Domain
-using Microsoft.AspNetCore.Http;
+﻿using LocalTourPlanner.Domain;
 using Microsoft.AspNetCore.Mvc;
+using LocalTourPlanner.Service.Interfaces;
 
 namespace LocalTourPlanner.Controllers
 {
     public class AccountController : Controller
     {
+        #region Fields
         private readonly ICustomerService _customerService;
+        #endregion
 
+        #region Ctor
         public AccountController(ICustomerService customerService)
         {
             _customerService = customerService;
         }
+        #endregion
+
+        #region Methods
 
         [HttpGet]
         public IActionResult SignUp() => View();
 
         [HttpPost]
-        public async Task<IActionResult> SignUp(Customer customer) // This is now Domain.Customer
+        public async Task<IActionResult> SignUp(Customer customer)
         {
             if (await _customerService.IsUsernameExists(customer.UserName))
             {
@@ -38,7 +43,6 @@ namespace LocalTourPlanner.Controllers
 
         [HttpGet]
         public IActionResult Login() => View();
-
   
         [HttpPost]
         public async Task<IActionResult> Login(string UserName, string UserPassword)
@@ -50,7 +54,6 @@ namespace LocalTourPlanner.Controllers
                 HttpContext.Session.SetInt32("UserID", user.CID ?? 0);
                 HttpContext.Session.SetString("UserName", user.CustomerName ?? "User");
 
-                // --- ADD THIS LINE ---
                 // This grabs the new UserRole from the Domain model and saves it to Session
                 HttpContext.Session.SetString("UserRole", user.UserRole ?? "Customer");
 
@@ -66,5 +69,7 @@ namespace LocalTourPlanner.Controllers
             HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
         }
+
+        #endregion
     }
 }

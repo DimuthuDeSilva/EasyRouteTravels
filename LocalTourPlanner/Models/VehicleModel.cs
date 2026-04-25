@@ -1,8 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace LocalTourPlanner.Models
 {
-    public class Vehicle
+    public class VehicleModel
     {
         public int? VID { get; set; }
         public string? VehicleName { get; set; }

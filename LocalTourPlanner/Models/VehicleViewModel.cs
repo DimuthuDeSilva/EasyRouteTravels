@@ -4,9 +4,9 @@
     {
         public VehicleViewModel() 
         { 
-        Vehicles = new List<Vehicle>();
+            Vehicles = new List<VehicleModel>();
         }
-            public List<Vehicle> Vehicles { get; set; }
+            public List<VehicleModel> Vehicles { get; set; }
 
     }
 }

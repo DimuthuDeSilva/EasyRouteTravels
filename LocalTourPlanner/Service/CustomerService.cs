@@ -1,21 +1,26 @@
 ﻿using LocalTourPlanner.Data;
-using LocalTourPlanner.Interfaces;
+using LocalTourPlanner.Service.Interfaces;
 using Microsoft.EntityFrameworkCore;
-// Note: We are being very specific about which Customer to use below
+using LocalTourPlanner.Domain;
+
 
 namespace LocalTourPlanner.Services
 {
     public class CustomerService : ICustomerService
     {
+        #region Fields
         private readonly ApplicationDbContext _context;
+        #endregion
 
+        #region Ctro
         public CustomerService(ApplicationDbContext context)
         {
             _context = context;
         }
+        #endregion
 
-        // We use LocalTourPlanner.Domain.Customer to match your ApplicationDbContext
-        public async Task<bool> RegisterCustomer(LocalTourPlanner.Domain.Customer customer)
+        #region Methods
+        public async Task<bool> RegisterCustomer(Customer customer)
         {
             try
             {
@@ -31,7 +36,7 @@ namespace LocalTourPlanner.Services
             }
         }
 
-        public async Task<LocalTourPlanner.Domain.Customer?> Login(string username, string password)
+        public async Task<Customer?> Login(string username, string password)
         {
             return await _context.Customer
                 .FirstOrDefaultAsync(u => u.UserName == username && u.UserPassword == password);
@@ -41,5 +46,6 @@ namespace LocalTourPlanner.Services
         {
             return await _context.Customer.AnyAsync(u => u.UserName == username);
         }
+        #endregion
     }
 }
