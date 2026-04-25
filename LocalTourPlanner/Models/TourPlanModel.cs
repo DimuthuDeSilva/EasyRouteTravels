@@ -1,8 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace LocalTourPlanner.Models
 {
-    public class Location
+    public class TourPlanModel
     {
         public int? LID { get; set; }
         public string? LocationName { get; set; }
@@ -14,5 +13,7 @@ namespace LocalTourPlanner.Models
         public string? OpeningHours { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
+        public int PlanID { get; set; }
+        public virtual ICollection<FeedbackModel> Feedbacks { get; set; } = new List<FeedbackModel>();
     }
 }

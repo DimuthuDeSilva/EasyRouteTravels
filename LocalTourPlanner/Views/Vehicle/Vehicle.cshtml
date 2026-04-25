@@ -1,0 +1,125 @@
+﻿@model LocalTourPlanner.Models.VehicleViewModel
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewData["Title"] = "Select Vehicle";
+    var userRole = HttpContextAccessor.HttpContext.Session.GetString("UserRole");
+}
+
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold text-primary">Available Fleet</h2>
+            <p class="text-muted lead">Choose the best ride for your journey</p>
+        </div>
+
+        @if (userRole == "Admin")
+        {
+            <a asp-action="Create" class="btn btn-dark rounded-pill px-4 shadow-sm">
+                <i class="bi bi-plus-lg me-2"></i> Add New Vehicle
+            </a>
+        }
+    </div>
+
+    @* --- SUCCESS NOTIFICATIONS --- *@
+    @if (TempData["Success"] != null || TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4 shadow-sm border-0" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            @(TempData["Success"] ?? TempData["Message"])
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @* --- ERROR / DUPLICATE NOTIFICATIONS --- *@
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm border-0" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        @if (Model.Vehicles != null && Model.Vehicles.Any())
+        {
+            @foreach (var item in Model.Vehicles)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 transition-hover">
+                        <div class="p-4 text-center bg-light border-bottom position-relative">
+
+                            @if (userRole == "Admin")
+                            {
+                                <div class="position-absolute top-0 end-0 p-3">
+                                    <a asp-action="Edit" asp-route-id="@item.VID" class="btn btn-sm btn-outline-secondary rounded-circle me-1" title="Edit">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.VID" class="btn btn-sm btn-outline-danger rounded-circle"
+                                       title="Delete" onclick="return confirm('Are you sure you want to delete this vehicle?')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </a>
+                                </div>
+                            }
+
+                            <i class="bi bi-truck text-primary mb-3" style="font-size: 3.5rem;"></i>
+                            <h4 class="fw-bold mt-2">@item.VehicleName</h4>
+                            <span class="badge bg-primary rounded-pill px-3">@item.VehicleType</span>
+                        </div>
+
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-4">
+                                <li class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted"><i class="bi bi-people me-2"></i>Capacity</span>
+                                    <span class="fw-bold">@item.SeatingCapacity Seats</span>
+                                </li>
+                                <li class="d-flex justify-content-between">
+                                    <span class="text-muted"><i class="bi bi-currency-dollar me-2"></i>Rate</span>
+                                    <span class="fw-bold text-success">Rs. @item.Rate / km</span>
+                                </li>
+                            </ul>
+
+                            @if (userRole != "Admin")
+                            {
+                                <form asp-controller="Vehicle" asp-action="SelectVehicle" method="post">
+                                    <input type="hidden" name="vehicleId" value="@item.VID" />
+                                    <input type="hidden" name="vehicleName" value="@item.VehicleName" />
+                                    <input type="hidden" name="rate" value="@item.Rate" />
+
+                                    <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-sm py-2 fw-bold">
+                                        Select This Vehicle
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-secondary w-100 rounded-pill disabled" disabled>
+                                    <i class="bi bi-shield-lock me-2"></i>Management Mode
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-exclamation-circle text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3">No vehicles found in the fleet.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .transition-hover {
+        transition: all 0.3s ease;
+    }
+
+        .transition-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+        }
+</style>

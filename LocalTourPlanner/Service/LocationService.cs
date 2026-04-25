@@ -1,5 +1,6 @@
 ﻿using LocalTourPlanner.Data;
 using LocalTourPlanner.Domain;
+using LocalTourPlanner.Service.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace LocalTourPlanner.Service
@@ -20,8 +21,11 @@ namespace LocalTourPlanner.Service
         #region Methods
         public async Task<List<Location>> GetAllLocationAsync()
         {
-            return await _context.Locations.ToListAsync();
+            return await _context.Locations
+                .Include(l => l.Feedbacks) 
+                .ToListAsync();
         }
+
         #endregion
     }
 }

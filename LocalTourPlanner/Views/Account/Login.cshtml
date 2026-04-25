@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-primary">Welcome Back</h2>
+                    <p class="text-muted">Login to access your saved plans</p>
+                </div>
+
+                <form asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3 text-center"></div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0 rounded-start-pill ps-3"><i class="bi bi-person"></i></span>
+                            <input type="text" name="UserName" class="form-control border-0 bg-light rounded-end-pill px-3" placeholder="Username" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0 rounded-start-pill ps-3"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="UserPassword" class="form-control border-0 bg-light rounded-end-pill px-3" placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" style="background-color: #004aad;">
+                        Login
+                    </button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="small text-muted">New here? <a asp-action="SignUp" class="text-primary text-decoration-none fw-bold">Create an account</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
