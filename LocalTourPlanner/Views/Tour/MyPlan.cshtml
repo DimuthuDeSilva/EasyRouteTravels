@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<TourPlanModel>
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = "My Tour Plan";
@@ -20,6 +21,14 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+
+    @* MAP *@
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body">
+            <h4 class="fw-bold mb-3">Your Route Map</h4>
+            <div id="map" style="height: 500px; width: 100%; border-radius: 12px;"></div>
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-lg-8">
@@ -123,3 +132,72 @@
         </div>
     </div>
 </div>
+
+
+@* ================= GOOGLE MAP ================= *@
+
+<script>
+    var locations = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                                Model,
+                                new System.Text.Json.JsonSerializerOptions
+                                {
+                                            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+                                }
+                ));
+
+    let map;
+    let directionsService;
+    let directionsRenderer;
+
+    function initMap() {
+
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 8,
+            center: { lat: 7.8731, lng: 80.7718 }
+        });
+
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
+
+        if (!locations || locations.length === 0) return;
+
+        let waypoints = [];
+
+        locations.forEach(x => {
+            if (x.latitude && x.longitude) {
+                waypoints.push({
+                    location: new google.maps.LatLng(x.latitude, x.longitude),
+                    stopover: true
+                });
+            }
+        });
+
+        if (waypoints.length === 0) return;
+
+        // ONLY ONE LOCATION → marker
+        if (waypoints.length === 1) {
+            new google.maps.Marker({
+                position: waypoints[0].location,
+                map: map
+            });
+            return;
+        }
+
+        let request = {
+            origin: waypoints[0].location,
+            destination: waypoints[waypoints.length - 1].location,
+            waypoints: waypoints.slice(1, -1),
+            travelMode: google.maps.TravelMode.DRIVING
+        };
+
+        directionsService.route(request, function (result, status) {
+            if (status === "OK") {
+                directionsRenderer.setDirections(result);
+            } else {
+                console.error("Google Route Error:", status);
+            }
+        });
+    }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=@(Configuration["GoogleMaps:ApiKey"])&callback=initMap"
+        async defer></script>
