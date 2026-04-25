@@ -1,0 +1,106 @@
+﻿@model LocalTourPlanner.Domain.Location
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-5">
+                    <div class="d-flex align-items-center mb-4">
+                        <a asp-action="ManageLocations" class="btn btn-link text-decoration-none p-0 me-3">
+                            <i class="bi bi-arrow-left fs-4"></i>
+                        </a>
+                        <h2 class="fw-bold mb-0">@(Model == null || Model.LID == 0 ? "Add New Destination" : "Edit Destination Details")</h2>
+                    </div>
+
+                    <form asp-action="@(Model == null || Model.LID == 0 ? "CreateLocation" : "EditLocation")"
+                          method="post"
+                          enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="LID" />
+
+                        <div class="row g-4">
+                            @* --- Basic Info --- *@
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold">Location Name</label>
+                                <input asp-for="LocationName" class="form-control rounded-pill py-2" placeholder="e.g. Sigiriya Rock Fortress" required />
+                                <span asp-validation-for="LocationName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Category</label>
+                                <select asp-for="Category" class="form-select rounded-pill py-2">
+                                    <option value="Cultural">Cultural</option>
+                                    <option value="Nature">Nature</option>
+                                    <option value="Historical">Historical</option>
+                                    <option value="Religious">Religious</option>
+                                    <option value="Adventure">Adventure</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Short Summary (Catchphrase)</label>
+                                <input asp-for="ShortDescription" class="form-control rounded-pill py-2" placeholder="e.g. The 8th wonder of the world" />
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Full Location Description</label>
+                                <textarea asp-for="LocationDescription" class="form-control rounded-4 py-3" rows="5" placeholder="Describe the history, beauty, and activities..."></textarea>
+                            </div>
+
+                            @* --- Media & Logistical Info --- *@
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Location Images</label>
+
+                                @* --- Existing Image Preview --- *@
+                                @if (!string.IsNullOrEmpty(Model?.ImagePath))
+                                {
+                                    <div class="mb-3">
+                                        <p class="small text-muted mb-2">Current Images:</p>
+                                        <img src="@Model.ImagePath" class="img-thumbnail rounded-4 shadow-sm" style="height: 120px; width: 180px; object-fit: cover;" />
+                                        @* Hidden field to keep the current path if no new file is uploaded *@
+                                        <input type="hidden" asp-for="ImagePath" />
+                                    </div>
+                                }
+
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white rounded-start-pill"><i class="bi bi-image"></i></span>
+                                    @* Name must match the IFormFile parameter in the Controller *@
+                                    <input type="file" name="imageFile" class="form-control rounded-end-pill py-2" accept="image/*" />
+                                </div>
+                                <div class="form-text">Choose a high-quality .jpg or .png for the destination gallery.</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Opening Hours</label>
+                                <input asp-for="OpeningHours" class="form-control rounded-pill py-2" placeholder="e.g. 7:00 AM - 6:00 PM" />
+                            </div>
+
+                            @* --- Geographic Info (Crucial for Google Maps) --- *@
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Base Distance from Hub (km)</label>
+                                <input asp-for="Distance" class="form-control rounded-pill py-2" type="number" step="0.01" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Latitude</label>
+                                <input asp-for="Latitude" class="form-control rounded-pill py-2" type="number" step="0.000001" placeholder="e.g. 7.9570" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Longitude</label>
+                                <input asp-for="Longitude" class="form-control rounded-pill py-2" type="number" step="0.000001" placeholder="e.g. 80.7603" />
+                            </div>
+                        </div>
+
+                        <div class="mt-5 d-flex gap-3">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm">
+                                <i class="bi bi-cloud-upload me-2"></i> Publish Destination
+                            </button>
+                            <a asp-action="ManageLocations" class="btn btn-light btn-lg rounded-pill px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
