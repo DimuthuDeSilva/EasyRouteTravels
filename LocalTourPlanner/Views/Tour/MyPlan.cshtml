@@ -1,8 +1,14 @@
 ﻿@model IEnumerable<TourPlanModel>
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
 
 @{
     ViewData["Title"] = "My Tour Plan";
+
+    // Retrieve vehicle selection from session
+    var selectedVehicleName = HttpContextAccessor.HttpContext.Session.GetString("SelectedVehicleName");
+    var vehicleRate = HttpContextAccessor.HttpContext.Session.GetString("VehicleRate");
 }
 
 <div class="container my-5">
@@ -77,11 +83,8 @@
                                     </div>
                                 </div>
                                 <div class="p-3">
-                                    @* The form points to the RemoveFromPlan action *@
                                     <form asp-controller="Tour" asp-action="RemoveFromPlan" method="post">
-                                        @* Pass the PlanID of THIS specific item *@
                                         <input type="hidden" name="planId" value="@item.PlanID" />
-
                                         <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle"
                                                 onclick="return confirm('Are you sure you want to remove this location?');">
                                             <i class="bi bi-trash"></i>
@@ -111,15 +114,42 @@
                         <span class="fw-bold">@Model.Sum(x => x.Distance ?? 0) km</span>
                     </div>
 
-                    <hr />
+                    @if (!string.IsNullOrEmpty(selectedVehicleName))
+                    {
+                        <div class="bg-light p-3 rounded-3 mb-3 border-start border-primary border-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small text-muted">Selected Vehicle:</span>
+                                <span class="badge bg-primary">@selectedVehicleName</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <span class="small text-muted">Rate per km:</span>
+                                <span class="fw-bold">$@vehicleRate</span>
+                            </div>
+                        </div>
+                    }
 
-                    <p class="text-muted small">Next step: Choose your preferred vehicle to see the estimated travel cost.</p>
+                    <hr />
 
                     @if (Model.Any())
                     {
-                        <a asp-controller="Vehicle" asp-action="Index" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm">
-                            Choose Vehicle <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
+                        @if (string.IsNullOrEmpty(selectedVehicleName))
+                        {
+                            <p class="text-muted small">Next step: Choose your preferred vehicle to see the estimated travel cost.</p>
+                            <a asp-controller="Vehicle" asp-action="Index" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm">
+                                Choose Vehicle <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="d-grid gap-2">
+                                <a asp-controller="Tour" asp-action="DownloadQuotation" class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow-sm">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i> Download Quotation
+                                </a>
+                                <a asp-controller="Vehicle" asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill py-1">
+                                    Change Vehicle
+                                </a>
+                            </div>
+                        }
                     }
                     else
                     {
@@ -133,24 +163,18 @@
     </div>
 </div>
 
-
-@* ================= GOOGLE MAP ================= *@
-
+@* ================= GOOGLE MAP SCRIPT (Remains Unchanged) ================= *@
 <script>
     var locations = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-                                Model,
-                                new System.Text.Json.JsonSerializerOptions
-                                {
-                                            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-                                }
-                ));
+                Model,
+                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+        ));
 
     let map;
     let directionsService;
     let directionsRenderer;
 
     function initMap() {
-
         map = new google.maps.Map(document.getElementById("map"), {
             zoom: 8,
             center: { lat: 7.8731, lng: 80.7718 }
@@ -162,7 +186,6 @@
         if (!locations || locations.length === 0) return;
 
         let waypoints = [];
-
         locations.forEach(x => {
             if (x.latitude && x.longitude) {
                 waypoints.push({
@@ -174,12 +197,8 @@
 
         if (waypoints.length === 0) return;
 
-        // ONLY ONE LOCATION → marker
         if (waypoints.length === 1) {
-            new google.maps.Marker({
-                position: waypoints[0].location,
-                map: map
-            });
+            new google.maps.Marker({ position: waypoints[0].location, map: map });
             return;
         }
 
@@ -199,5 +218,4 @@
         });
     }
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=@(Configuration["GoogleMaps:ApiKey"])&callback=initMap"
-        async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=@(Configuration["GoogleMaps:ApiKey"])&callback=initMap" async defer></script>

@@ -1,0 +1,128 @@
+﻿@model LocalTourPlanner.Models.CostBreakdownViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #0d6efd;
+            padding-bottom: 20px;
+        }
+
+            .header h1 {
+                color: #0d6efd;
+                margin: 0;
+            }
+
+        .section-title {
+            background: #f0f7ff;
+            color: #0d6efd;
+            padding: 10px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            text-align: left;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            padding: 10px;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .total-row {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #0d6efd;
+            margin-top: 15px;
+            border-top: 2px solid #0d6efd;
+            padding-top: 10px;
+        }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 9pt;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>EasyRoute Travels</h1>
+        <p>Trip Quotation & Itinerary Summary</p>
+    </div>
+
+    <div class="section-title">Selected Destinations</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Category</th>
+                <th style="text-align: right;">Distance</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var loc in Model.SelectedLocations)
+            {
+                <tr>
+                    <td>@loc.LocationName</td>
+                    <td>@loc.Category</td>
+                    <td style="text-align: right;">@loc.Distance km</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="section-title">Transport Details</div>
+    <table>
+        <tr><th width="30%">Vehicle</th><td>@Model.SelectedVehicleName</td></tr>
+        <tr><th>Base Rate</th><td>$@Model.RatePerKm per km</td></tr>
+    </table>
+
+    <div class="summary-box">
+        <div style="overflow: hidden;">
+            <span style="float: left;">Total Travel Distance (including return)</span>
+            <span style="float: right; font-weight: bold;">@Model.TotalDistance km</span>
+        </div>
+        <div class="total-row">
+            <span style="float: left;">GRAND TOTAL</span>
+            <span style="float: right;">$@Model.GrandTotal.ToString("N2")</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Generated on @Model.GeneratedDate. Valid for 7 days[cite: 8].</p>
+        <p>Email: support@easyroute.com | Web: www.easyroute.com </p>
+    </div>
+</body>
+</html>

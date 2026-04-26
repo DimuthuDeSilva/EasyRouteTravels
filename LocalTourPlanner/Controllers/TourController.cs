@@ -2,6 +2,7 @@
 using LocalTourPlanner.Models;
 using LocalTourPlanner.Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Rotativa.AspNetCore;
 
 namespace LocalTourPlanner.Controllers
 {
@@ -100,6 +101,53 @@ namespace LocalTourPlanner.Controllers
             TempData["Message"] = "Location removed from your plan.";
 
             return RedirectToAction("MyPlan");
+        }
+
+        public async Task<IActionResult> DownloadQuotation()
+        {
+            var userId = HttpContext.Session.GetInt32("UserID");
+            var vehicleId = HttpContext.Session.GetInt32("SelectedVehicleID");
+
+            // Get the rate from session
+            var rateStr = HttpContext.Session.GetString("VehicleRate");
+
+            // FIX: Check if the rate or vehicle is null before parsing
+            if (userId == null || vehicleId == null || string.IsNullOrEmpty(rateStr))
+            {
+                TempData["Error"] = "Please select a vehicle first.";
+                return RedirectToAction("SelectVehicle", "Vehicle");
+            }
+
+            // Safely parse the rate now that we know it's not null
+            decimal.TryParse(rateStr, out decimal rate);
+
+            var userPlan = await _tourPlanService.GetUserPlansAsync(userId.Value);
+
+            // Calculations...
+            double baseDistance = userPlan.Sum(x => x.Location?.Distance ?? 0);
+            double returnDistance = userPlan.Any() ? userPlan.Max(x => x.Location?.Distance ?? 0) : 0;
+            double totalDistance = baseDistance + returnDistance;
+
+            var model = new CostBreakdownViewModel
+            {
+                SelectedLocations = userPlan.Select(x => new TourPlanModel
+                {
+                    LocationName = x.Location?.LocationName,
+                    Category = x.Location?.Category,
+                    Distance = x.Location?.Distance
+                }).ToList(),
+                SelectedVehicleName = HttpContext.Session.GetString("SelectedVehicleName") ?? "Unknown Vehicle",
+                RatePerKm = (double)rate,
+                TotalDistance = totalDistance,
+                GrandTotal = totalDistance * (double)rate,
+                GeneratedDate = DateTime.Now.ToString("MMMM dd, yyyy")
+            };
+
+            return new ViewAsPdf("QuotationPDF", model)
+            {
+                FileName = $"Trip_Quotation_{DateTime.Now:yyyyMMdd}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4
+            };
         }
     }
 }

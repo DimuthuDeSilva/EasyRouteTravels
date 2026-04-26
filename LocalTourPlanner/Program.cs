@@ -3,6 +3,7 @@ using LocalTourPlanner.Service;
 using LocalTourPlanner.Service.Interfaces;
 using LocalTourPlanner.Services;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,12 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
+
+// --- ROTATIVA CONFIGURATION START ---
+// We use the WebRootPath (wwwroot) to point to the Rotativa folder
+IWebHostEnvironment env = app.Environment;
+RotativaConfiguration.Setup(env.WebRootPath, "Rotativa");
+// --- ROTATIVA CONFIGURATION END ---
 
 if (!app.Environment.IsDevelopment())
 {
