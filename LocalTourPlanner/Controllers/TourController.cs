@@ -143,11 +143,7 @@ namespace LocalTourPlanner.Controllers
                 GeneratedDate = DateTime.Now.ToString("MMMM dd, yyyy")
             };
 
-            return new ViewAsPdf("QuotationPDF", model)
-            {
-                FileName = $"Trip_Quotation_{DateTime.Now:yyyyMMdd}.pdf",
-                PageSize = Rotativa.AspNetCore.Options.Size.A4
-            };
+            return View("~/Views/Tour/QuotationPDF.cshtml", model);
         }
     }
 }

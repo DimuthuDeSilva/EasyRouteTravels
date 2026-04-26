@@ -39,7 +39,6 @@ var app = builder.Build();
 // --- ROTATIVA CONFIGURATION START ---
 // We use the WebRootPath (wwwroot) to point to the Rotativa folder
 IWebHostEnvironment env = app.Environment;
-RotativaConfiguration.Setup(env.WebRootPath, "Rotativa");
 // --- ROTATIVA CONFIGURATION END ---
 
 if (!app.Environment.IsDevelopment())

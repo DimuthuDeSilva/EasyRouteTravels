@@ -1,38 +1,55 @@
-﻿@model LocalTourPlanner.Models.CostBreakdownViewModel
-@{
-    Layout = null;
-}
+﻿@model CostBreakdownViewModel
 
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8" />
+    <title>Trip Quotation</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
             color: #333;
             margin: 0;
-            padding: 0;
+            padding: 30px;
+            background: #fff;
         }
 
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        /* Header */
         .header {
             text-align: center;
-            border-bottom: 3px solid #0d6efd;
-            padding-bottom: 20px;
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }
 
             .header h1 {
-                color: #0d6efd;
                 margin: 0;
+                color: #0d6efd;
             }
 
+            .header p {
+                margin: 5px 0 0;
+                font-size: 14px;
+                color: #555;
+            }
+
+        /* Section titles */
         .section-title {
             background: #f0f7ff;
             color: #0d6efd;
-            padding: 10px;
+            padding: 8px 12px;
             font-weight: bold;
-            margin-top: 20px;
+            border-left: 4px solid #0d6efd;
+            margin-top: 25px;
         }
 
+        /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -42,87 +59,137 @@
         th {
             text-align: left;
             background: #f8f9fa;
-            border-bottom: 2px solid #dee2e6;
             padding: 10px;
+            font-size: 14px;
+            border-bottom: 2px solid #dee2e6;
         }
 
         td {
             padding: 10px;
+            font-size: 14px;
             border-bottom: 1px solid #eee;
         }
 
+        /* Summary box */
         .summary-box {
             margin-top: 30px;
             padding: 20px;
             background: #f8f9fa;
-            border-radius: 10px;
+            border-radius: 8px;
             border: 1px solid #dee2e6;
         }
 
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
         .total-row {
-            font-size: 18pt;
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
             font-weight: bold;
             color: #0d6efd;
-            margin-top: 15px;
             border-top: 2px solid #0d6efd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            border-top: 1px solid #ddd;
             padding-top: 10px;
         }
 
-        .footer {
-            margin-top: 50px;
+        /* Print button */
+        .print-btn {
+            margin-top: 20px;
             text-align: center;
-            font-size: 9pt;
-            color: #888;
+        }
+
+        /* Print optimization */
+        @@media print {
+            .print-btn {
+                display: none;
+            }
         }
     </style>
 </head>
+
 <body>
-    <div class="header">
-        <h1>EasyRoute Travels</h1>
-        <p>Trip Quotation & Itinerary Summary</p>
-    </div>
+    <div class="container">
 
-    <div class="section-title">Selected Destinations</div>
-    <table>
-        <thead>
-            <tr>
-                <th>Location</th>
-                <th>Category</th>
-                <th style="text-align: right;">Distance</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var loc in Model.SelectedLocations)
-            {
+        <!-- Header -->
+        <div class="header">
+            <h1>EasyRoute Travels</h1>
+            <p>Trip Quotation & Itinerary Summary</p>
+        </div>
+
+        <!-- Selected Destinations -->
+        <div class="section-title">Selected Destinations</div>
+        <table>
+            <thead>
                 <tr>
-                    <td>@loc.LocationName</td>
-                    <td>@loc.Category</td>
-                    <td style="text-align: right;">@loc.Distance km</td>
+                    <th>Location</th>
+                    <th>Category</th>
+                    <th style="text-align: right;">Distance</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var loc in Model.SelectedLocations)
+                {
+                    <tr>
+                        <td>@loc.LocationName</td>
+                        <td>@loc.Category</td>
+                        <td style="text-align: right;">@loc.Distance km</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
 
-    <div class="section-title">Transport Details</div>
-    <table>
-        <tr><th width="30%">Vehicle</th><td>@Model.SelectedVehicleName</td></tr>
-        <tr><th>Base Rate</th><td>$@Model.RatePerKm per km</td></tr>
-    </table>
+        <!-- Transport Details -->
+        <div class="section-title">Transport Details</div>
+        <table>
+            <tr>
+                <th width="30%">Vehicle</th>
+                <td>@Model.SelectedVehicleName</td>
+            </tr>
+            <tr>
+                <th>Base Rate</th>
+                <td>$@Model.RatePerKm per km</td>
+            </tr>
+        </table>
 
-    <div class="summary-box">
-        <div style="overflow: hidden;">
-            <span style="float: left;">Total Travel Distance (including return)</span>
-            <span style="float: right; font-weight: bold;">@Model.TotalDistance km</span>
+        <!-- Summary -->
+        <div class="summary-box">
+            <div class="summary-row">
+                <span>Total Travel Distance (including return)</span>
+                <span><strong>@Model.TotalDistance km</strong></span>
+            </div>
+
+            <div class="total-row">
+                <span>GRAND TOTAL</span>
+                <span>$@Model.GrandTotal.ToString("N2")</span>
+            </div>
         </div>
-        <div class="total-row">
-            <span style="float: left;">GRAND TOTAL</span>
-            <span style="float: right;">$@Model.GrandTotal.ToString("N2")</span>
-        </div>
-    </div>
 
-    <div class="footer">
-        <p>Generated on @Model.GeneratedDate. Valid for 7 days[cite: 8].</p>
-        <p>Email: support@easyroute.com | Web: www.easyroute.com </p>
+        <!-- Footer -->
+        <div class="footer">
+            <p>Generated on @Model.GeneratedDate. Valid for 7 days.</p>
+            <p>Email: support@easyroute.com | Web: www.easyroute.com</p>
+        </div>
+
+        <!-- Print Button -->
+        <div class="print-btn">
+            <button onclick="window.print()">Print Report</button>
+        </div>
+
     </div>
 </body>
 </html>

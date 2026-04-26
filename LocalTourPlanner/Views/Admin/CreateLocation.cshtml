@@ -1,4 +1,4 @@
-﻿@model LocalTourPlanner.Domain.Location
+﻿@model LocationModel
 
 <div class="container mt-5 mb-5">
     <div class="row justify-content-center">
@@ -47,32 +47,39 @@
                                 <textarea asp-for="LocationDescription" class="form-control rounded-4 py-3" rows="5" placeholder="Describe the history, beauty, and activities..."></textarea>
                             </div>
 
-                            @* --- Media & Logistical Info --- *@
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Location Images</label>
 
-                                @* --- Existing Image Preview --- *@
+                                @* --- Existing Single Image Preview --- *@
                                 @if (!string.IsNullOrEmpty(Model?.ImagePath))
                                 {
                                     <div class="mb-3">
-                                        <p class="small text-muted mb-2">Current Images:</p>
+                                        <p class="small text-muted mb-2">Main Image:</p>
                                         <img src="@Model.ImagePath" class="img-thumbnail rounded-4 shadow-sm" style="height: 120px; width: 180px; object-fit: cover;" />
-                                        @* Hidden field to keep the current path if no new file is uploaded *@
                                         <input type="hidden" asp-for="ImagePath" />
                                     </div>
                                 }
 
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white rounded-start-pill"><i class="bi bi-image"></i></span>
-                                    @* Name must match the IFormFile parameter in the Controller *@
+                                <!-- Single Image Upload -->
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-white rounded-start-pill">
+                                        <i class="bi bi-image"></i>
+                                    </span>
                                     <input type="file" name="imageFile" class="form-control rounded-end-pill py-2" accept="image/*" />
                                 </div>
-                                <div class="form-text">Choose a high-quality .jpg or .png for the destination gallery.</div>
-                            </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Opening Hours</label>
-                                <input asp-for="OpeningHours" class="form-control rounded-pill py-2" placeholder="e.g. 7:00 AM - 6:00 PM" />
+                                <!-- ✅ NEW: Multiple Image Upload -->
+                                <label class="form-label fw-semibold mt-3">Gallery Images </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white rounded-start-pill">
+                                        <i class="bi bi-images"></i>
+                                    </span>
+                                    <input type="file" name="imageFiles" multiple class="form-control rounded-end-pill py-2" accept="image/*" />
+                                </div>
+
+                                <div class="form-text">
+                                    You can upload multiple images for the destination gallery.
+                                </div>
                             </div>
 
                             @* --- Geographic Info (Crucial for Google Maps) --- *@

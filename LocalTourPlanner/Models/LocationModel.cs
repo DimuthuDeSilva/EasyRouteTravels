@@ -6,6 +6,7 @@ namespace LocalTourPlanner.Models
         public LocationModel() 
         {
             Feedbacks = new List<FeedbackModel>();
+            GalleryImages = new List<string>();
         }
         public int? LID { get; set; }
         public string? LocationName { get; set; }
@@ -18,5 +19,6 @@ namespace LocalTourPlanner.Models
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
         public virtual ICollection<FeedbackModel> Feedbacks { get; set; }
+        public List<string> GalleryImages { get; set; }
     }
 }

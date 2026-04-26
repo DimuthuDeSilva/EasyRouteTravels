@@ -33,6 +33,7 @@ namespace LocalTourPlanner.Controllers
                     ShortDescription = x.ShortDescription,
                     Category = x.Category,
                     Distance = x.Distance,
+                    ImagePath =x.ImagePath
                 }).ToList()
             };
 

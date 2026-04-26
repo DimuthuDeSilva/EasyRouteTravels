@@ -16,5 +16,6 @@ namespace LocalTourPlanner.Data
         public DbSet<Customer> Customer { get; set; }
         public DbSet<TourPlan> TourPlans { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<ImagePath> ImagePath { get; set; }
     }
 }

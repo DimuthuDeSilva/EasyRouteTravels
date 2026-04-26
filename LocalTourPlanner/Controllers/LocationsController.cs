@@ -35,34 +35,42 @@ namespace LocalTourPlanner.Controllers
                     Category = x.Category,
                     Distance = x.Distance,
                     ImagePath = x.ImagePath,
-                    
+
                     Feedbacks = x.Feedbacks != null
-                ? x.Feedbacks.Select(f => new FeedbackModel
-                {
-                    FeedbackID = f.FeedbackID,
-                    LocationID = f.LocationID,
-                    UserName = f.UserName,
-                    Comment = f.Comment,
-                    Rating = f.Rating,
-                    ImagePath = f.ImagePath,
-                    CreatedDate = f.CreatedDate
-                }).ToList()
-                : new List<FeedbackModel>()
+                        ? x.Feedbacks.Select(f => new FeedbackModel
+                        {
+                            FeedbackID = f.FeedbackID,
+                            LocationID = f.LocationID,
+                            UserName = f.UserName,
+                            Comment = f.Comment,
+                            Rating = f.Rating,
+                            ImagePath = f.ImagePath,
+                            CreatedDate = f.CreatedDate
+                        }).ToList()
+                        : new List<FeedbackModel>()
                 })
-        .FirstOrDefault();
+                .FirstOrDefault();
 
             if (location == null)
             {
                 return NotFound();
             }
 
-            // --- CHECK IF LOCATION IS IN USER'S PLAN ---
+            // ================= MULTIPLE IMAGES =================
+            var images = await _locationService.GetImagePathsByLocationIdAsync(id);
+
+            location.GalleryImages = images
+                .Select(i => i.ImagePathValue) // or i.Path depending on your column
+                .ToList();
+
+            // ================= PLAN CHECK =================
             var userId = HttpContext.Session.GetInt32("UserID");
             bool isLocationInPlan = false;
 
             if (userId.HasValue)
             {
-                isLocationInPlan = await _tourPlanService.IsLocationInPlanAsync(userId.Value, id);
+                isLocationInPlan =
+                    await _tourPlanService.IsLocationInPlanAsync(userId.Value, id);
             }
 
             ViewBag.IsLocationInPlan = isLocationInPlan;

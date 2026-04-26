@@ -1,24 +1,29 @@
-﻿using LocalTourPlanner.Data;
-using LocalTourPlanner.Domain;
-using LocalTourPlanner.Models;
+﻿using LocalTourPlanner.Models;
+using LocalTourPlanner.Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace LocalTourPlanner.Controllers
 {
     public class AdminController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ILocationService _locationService;
+        private readonly IVehicleService _vehicleService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public AdminController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public AdminController(
+            ILocationService locationService,
+            IVehicleService vehicleService,
+            IWebHostEnvironment webHostEnvironment)
+
         {
-            _context = context;
+            _locationService = locationService;
+            _vehicleService = vehicleService;
             _webHostEnvironment = webHostEnvironment;
         }
 
-        // --- AUTH CHECK HELPER ---
-        private bool IsAdmin() => HttpContext.Session.GetString("UserRole") == "Admin";
+        // ================= AUTH =================
+        private bool IsAdmin() =>
+            HttpContext.Session.GetString("UserRole") == "Admin";
 
         public IActionResult Index()
         {
@@ -26,15 +31,29 @@ namespace LocalTourPlanner.Controllers
             return View();
         }
 
-        // ==========================================
-        // --- LOCATION MANAGEMENT ---
-        // ==========================================
+        // ================= LOCATION =================
 
-        public IActionResult ManageLocations()
+        public async Task<IActionResult> ManageLocations()
         {
             if (!IsAdmin()) return RedirectToAction("Index", "Home");
-            var locations = _context.Locations.ToList();
-            return View(locations);
+
+            var locations = await _locationService.GetAllAsync();
+
+            var model = locations.Select(x => new LocationModel
+            {
+                LID = x.LID,
+                LocationName = x.LocationName,
+                LocationDescription = x.LocationDescription,
+                Category = x.Category,
+                Distance = x.Distance,
+                ShortDescription = x.ShortDescription,
+                ImagePath = x.ImagePath,
+                OpeningHours = x.OpeningHours,
+                Latitude = x.Latitude,
+                Longitude = x.Longitude
+            }).ToList();
+
+            return View(model);
         }
 
         public IActionResult CreateLocation()
@@ -43,82 +62,148 @@ namespace LocalTourPlanner.Controllers
             return View();
         }
 
+
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateLocation(Location location, IFormFile? imageFile)
+        public async Task<IActionResult> CreateLocation(
+    LocationModel model,
+    IFormFile? imageFile,
+    List<IFormFile>? imageFiles)
         {
             if (!IsAdmin()) return RedirectToAction("Index", "Home");
 
             if (ModelState.IsValid)
             {
+                // ================= CREATE LOCATION =================
+                var location = new Domain.Location
+                {
+                    LocationName = model.LocationName,
+                    LocationDescription = model.LocationDescription,
+                    Category = model.Category,
+                    Distance = model.Distance,
+                    ShortDescription = model.ShortDescription,
+                    OpeningHours = model.OpeningHours,
+                    Latitude = model.Latitude,
+                    Longitude = model.Longitude
+                };
+
+                // Save main image
                 if (imageFile != null)
                 {
                     location.ImagePath = await SaveImage(imageFile);
                 }
 
-                _context.Locations.Add(location);
-                await _context.SaveChangesAsync();
+                // Save location first to get LID
+                await _locationService.CreateAsync(location);
+
+                // ================= GALLERY IMAGES =================
+                if (imageFiles != null && imageFiles.Count > 0)
+                {
+                    foreach (var file in imageFiles)
+                    {
+                        var path = await SaveGalleryImages(file);
+
+                        var imageEntity = new Domain.ImagePath
+                        {
+                            LocationID = location.LID,   // IMPORTANT: FK
+                            ImagePathValue = path
+                        };
+
+                        await _locationService.InsertImagePathAsync(imageEntity);
+                    }
+                }
+
                 TempData["Success"] = "Location added successfully!";
                 return RedirectToAction(nameof(ManageLocations));
             }
-            return View(location);
-        }
 
+            return View(model);
+        }
         public async Task<IActionResult> EditLocation(int id)
         {
             if (!IsAdmin()) return RedirectToAction("Index", "Home");
-            var location = await _context.Locations.FindAsync(id);
+
+            var location = await _locationService.GetByIdAsync(id);
             if (location == null) return NotFound();
-            return View(location);
+
+            var model = new LocationModel
+            {
+                LID = location.LID,
+                LocationName = location.LocationName,
+                LocationDescription = location.LocationDescription,
+                Category = location.Category,
+                Distance = location.Distance,
+                ShortDescription = location.ShortDescription,
+                ImagePath = location.ImagePath,
+                OpeningHours = location.OpeningHours,
+                Latitude = location.Latitude,
+                Longitude = location.Longitude
+            };
+
+            return View(model);
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditLocation(Location location, IFormFile? imageFile)
+        public async Task<IActionResult> EditLocation(LocationModel model, IFormFile? imageFile)
         {
             if (!IsAdmin()) return RedirectToAction("Index", "Home");
 
             if (ModelState.IsValid)
             {
-                if (imageFile != null)
+                var location = new Domain.Location
                 {
-                    location.ImagePath = await SaveImage(imageFile);
-                }
-                // Note: If imageFile is null, the hidden input in the View 
-                // preserves the existing ImagePath currently attached to the model.
+                    LID = model.LID ?? 0,
+                    LocationName = model.LocationName,
+                    LocationDescription = model.LocationDescription,
+                    Category = model.Category,
+                    Distance = model.Distance,
+                    ShortDescription = model.ShortDescription,
+                    OpeningHours = model.OpeningHours,
+                    Latitude = model.Latitude,
+                    Longitude = model.Longitude,
+                    ImagePath = model.ImagePath
+                };
 
-                _context.Update(location);
-                await _context.SaveChangesAsync();
+                if (imageFile != null)
+                    location.ImagePath = await SaveImage(imageFile);
+
+                await _locationService.UpdateAsync(location);
+
                 TempData["Success"] = "Location updated successfully!";
                 return RedirectToAction(nameof(ManageLocations));
             }
-            return View(location);
+
+            return View(model);
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteLocation(int id)
+        public async Task<IActionResult> DeleteLocation(int id)
         {
             if (!IsAdmin()) return RedirectToAction("Index", "Home");
-            var loc = _context.Locations.Find(id);
-            if (loc != null)
-            {
-                _context.Locations.Remove(loc);
-                _context.SaveChanges();
-                TempData["Success"] = "Location deleted successfully!";
-            }
+
+            await _locationService.DeleteAsync(id);
+
+            TempData["Success"] = "Location deleted successfully!";
             return RedirectToAction(nameof(ManageLocations));
         }
 
-        // ==========================================
-        // --- VEHICLE MANAGEMENT ---
-        // ==========================================
+        // ================= VEHICLES =================
 
-        public IActionResult ManageVehicles()
+        public async Task<IActionResult> ManageVehicles()
         {
             if (!IsAdmin()) return RedirectToAction("Index", "Home");
-            var vehicles = _context.Vehicles.ToList();
-            return View(vehicles);
+
+            var vehicles = await _vehicleService.GetAllVehicleAsync();
+
+            var model = vehicles.Select(x => new VehicleModel
+            {
+                VID = x.VID,
+                VehicleName = x.VehicleName,
+                VehicleType = x.VehicleType,
+                Rate = x.Rate,
+                SeatingCapacity = x.SeatingCapacity
+            }).ToList();
+
+            return View(model);
         }
 
         public IActionResult CreateVehicle()
@@ -128,76 +213,113 @@ namespace LocalTourPlanner.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateVehicle(Vehicle vehicle)
+        public async Task<IActionResult> CreateVehicle(VehicleModel model)
         {
             if (!IsAdmin()) return RedirectToAction("Index", "Home");
+
             if (ModelState.IsValid)
             {
-                _context.Vehicles.Add(vehicle);
-                await _context.SaveChangesAsync();
+                var vehicle = new Domain.Vehicle
+                {
+                    VehicleName = model.VehicleName,
+                    VehicleType = model.VehicleType,
+                    Rate = model.Rate,
+                    SeatingCapacity = model.SeatingCapacity
+                };
+
+                await _vehicleService.InsertVehicleAsync(vehicle);
+
                 TempData["Success"] = "Vehicle added successfully!";
                 return RedirectToAction(nameof(ManageVehicles));
             }
-            return View(vehicle);
+
+            return View(model);
         }
 
         public async Task<IActionResult> EditVehicle(int id)
         {
             if (!IsAdmin()) return RedirectToAction("Index", "Home");
-            var vehicle = await _context.Vehicles.FindAsync(id);
+
+            var vehicle = await _vehicleService.GetByIdAsync(id);
             if (vehicle == null) return NotFound();
-            return View(vehicle);
+
+            var model = new VehicleModel
+            {
+                VID = vehicle.VID,
+                VehicleName = vehicle.VehicleName,
+                VehicleType = vehicle.VehicleType,
+                Rate = vehicle.Rate,
+                SeatingCapacity = vehicle.SeatingCapacity
+            };
+
+            return View(model);
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditVehicle(Vehicle vehicle)
+        public async Task<IActionResult> EditVehicle(VehicleModel model)
         {
             if (!IsAdmin()) return RedirectToAction("Index", "Home");
+
             if (ModelState.IsValid)
             {
-                _context.Update(vehicle);
-                await _context.SaveChangesAsync();
+                var vehicle = new Domain.Vehicle
+                {
+                    VID = model.VID ?? 0,
+                    VehicleName = model.VehicleName,
+                    VehicleType = model.VehicleType,
+                    Rate = model.Rate,
+                    SeatingCapacity = model.SeatingCapacity
+                };
+
+                await _vehicleService.UpdateVehicleAsync(vehicle);
+
                 TempData["Success"] = "Vehicle updated successfully!";
                 return RedirectToAction(nameof(ManageVehicles));
             }
-            return View(vehicle);
+
+            return View(model);
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteVehicle(int id)
+        public async Task<IActionResult> DeleteVehicle(int id)
         {
             if (!IsAdmin()) return RedirectToAction("Index", "Home");
-            var vehicle = _context.Vehicles.Find(id);
-            if (vehicle != null)
-            {
-                _context.Vehicles.Remove(vehicle);
-                _context.SaveChanges();
-                TempData["Success"] = "Vehicle deleted successfully!";
-            }
+
+            await _vehicleService.DeleteVehicleAsync(id);
+
+            TempData["Success"] = "Vehicle deleted successfully!";
             return RedirectToAction(nameof(ManageVehicles));
         }
 
-        // --- IMAGE UPLOAD HELPER ---
+        // ================= IMAGE HELPER =================
+
         private async Task<string> SaveImage(IFormFile file)
         {
             string wwwRootPath = _webHostEnvironment.WebRootPath;
-            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            string path = Path.Combine(wwwRootPath, @"images/locations");
+            string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            string path = Path.Combine(wwwRootPath, "images/locations");
 
             if (!Directory.Exists(path))
-            {
                 Directory.CreateDirectory(path);
-            }
 
-            using (var fileStream = new FileStream(Path.Combine(path, fileName), FileMode.Create))
-            {
-                await file.CopyToAsync(fileStream);
-            }
+            using var stream = new FileStream(Path.Combine(path, fileName), FileMode.Create);
+            await file.CopyToAsync(stream);
 
-            return @"/images/locations/" + fileName;
+            return "/images/locations/" + fileName;
+        }
+        private async Task<string> SaveGalleryImages(IFormFile file)
+        {
+            string wwwRootPath = _webHostEnvironment.WebRootPath;
+            string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            string path = Path.Combine(wwwRootPath, "images/detailsimages");
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            using var stream = new FileStream(Path.Combine(path, fileName), FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return "/images/detailsimages/" + fileName;
         }
     }
 }
