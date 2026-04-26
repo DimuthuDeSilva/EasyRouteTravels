@@ -10,7 +10,7 @@ namespace LocalTourPlanner.Models
         public string Comment { get; set; }
         public int Rating { get; set; }
         public IFormFile? ImageFile { get; set; }
-        public string ImagePath { get; set; }
+        public string? ImagePath { get; set; }
         public DateTime CreatedDate { get; set; }
     }
 }
